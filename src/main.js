@@ -40,7 +40,11 @@ scene.add(frontFill);
 const textureLoader = new THREE.TextureLoader();
 const p4Tex = textureLoader.load('/assets/p4_texture.jpg');
 p4Tex.colorSpace = THREE.SRGBColorSpace;
-p4Tex.flipY = false;
+p4Tex.flipY = true;
+// Flip X horizontally
+p4Tex.wrapS = THREE.RepeatWrapping;
+p4Tex.repeat.x = -1;
+p4Tex.offset.x = 1;
 
 const screenMat = new THREE.MeshStandardMaterial({
   map: p4Tex,
