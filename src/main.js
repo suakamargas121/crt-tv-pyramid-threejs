@@ -38,35 +38,36 @@ scene.add(frontFill);
 
 // Screen & Chassis Materials
 const textureLoader = new THREE.TextureLoader();
-const p4Tex = textureLoader.load('/assets/p4_texture.jpg');
-p4Tex.colorSpace = THREE.SRGBColorSpace;
-p4Tex.flipY = true;
+const logoTex = textureLoader.load('/assets/logo.jpg');
+logoTex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+logoTex.colorSpace = THREE.SRGBColorSpace;
+logoTex.flipY = true;
 // Flip X horizontally
-p4Tex.wrapS = THREE.RepeatWrapping;
-p4Tex.repeat.x = -1;
-p4Tex.offset.x = 1;
+logoTex.wrapS = THREE.RepeatWrapping;
+logoTex.repeat.x = -1;
+logoTex.offset.x = 1;
 
 const screenMat = new THREE.MeshStandardMaterial({
-  map: p4Tex,
+  map: logoTex,
   emissive: new THREE.Color(0x3a3a3a),
-  emissiveMap: p4Tex,
-  emissiveIntensity: 0.55,
-  roughness: 0.35,
-  metalness: 0.0
+  emissiveMap: logoTex,
+  // emissiveIntensity: 0.55,
+  // roughness: 0.35,
+  // metalness: 0.0
 });
 
 // CRT scanline shader
-screenMat.onBeforeCompile = (shader) => {
-  shader.fragmentShader = shader.fragmentShader.replace(
-    '#include <dithering_fragment>',
-    `
-    #include <dithering_fragment>
-    float scanline = sin(vMapUv.y * 380.0) * 0.5 + 0.5;
-    scanline = clamp(0.72 + 0.28 * scanline, 0.0, 1.0);
-    gl_FragColor.rgb *= scanline;
-    `
-  );
-};
+// screenMat.onBeforeCompile = (shader) => {
+//   shader.fragmentShader = shader.fragmentShader.replace(
+//     '#include <dithering_fragment>',
+//     `
+//     #include <dithering_fragment>
+//     float scanline = sin(vMapUv.y * 380.0) * 0.5 + 0.5;
+//     scanline = clamp(0.72 + 0.28 * scanline, 0.0, 1.0);
+//     gl_FragColor.rgb *= scanline;
+//     `
+//   );
+// };
 
 const plasticMat = new THREE.MeshStandardMaterial({
   color: 0x6e7075,
@@ -107,11 +108,11 @@ loader.load('/assets/tv_pyramid.glb', (gltf) => {
         child.material = screenMat;
       } else if (name.includes('glass')) {
         child.material = new THREE.MeshPhysicalMaterial({
-          roughness: 0.05,
-          transmission: 0.85,
-          thickness: 0.05,
+          roughness: 0,
+          transmission: 1,
+          thickness: 0.00,
           transparent: true,
-          opacity: 0.9
+          opacity: 0
         });
       } else if (name.includes('back')) {
         child.material = plasticDarkMat;
@@ -139,12 +140,13 @@ function updateCameraDistance() {
   const distForHeight = (modelHeight * 0.5 * padding) / halfFovV;
   const distForWidth = (modelWidth * 0.5 * padding) / halfFovH;
 
-  const targetDistance = Math.max(distForHeight, distForWidth, 2.5);
+  const targetDistance = Math.max(distForHeight, distForWidth, 5
+  );
   camera.position.set(targetDistance, 0, 0);
-  camera.lookAt(0, 0, 0);
+  camera.lookAt(0, 0.5, 0);
 }
 
-// Parallax mouse & touch interaction (max 5 degrees)
+// Parallax mouse 
 const MAX_ROT = THREE.MathUtils.degToRad(5.0);
 let targetRotY = 0;
 let targetRotZ = 0;
@@ -153,7 +155,7 @@ function handlePointer(clientX, clientY) {
   const nx = (clientX / window.innerWidth) * 2 - 1;
   const ny = (clientY / window.innerHeight) * 2 - 1;
   targetRotY = -nx * MAX_ROT;
-  targetRotZ = -ny * MAX_ROT;
+  targetRotZ = ny * MAX_ROT;
 }
 
 window.addEventListener('mousemove', (e) => {
